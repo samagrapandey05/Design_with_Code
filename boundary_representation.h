@@ -17,24 +17,20 @@ using namespace std;
 
 struct Edge;
 struct Shape;
+/*Vertex contains (x,y,z), pointer to all adjacent edges*/
 struct Vertex{
     double x;
     double y;
     double z;
     vector<Edge*> edges;
-    Shape* shape;
-}
-struct Edge{
-    vector<Vertex*> vertices;
-    array<Precurve*, 2> precurves;
-}
-struct Precurve{
-    Edge* edge;
-    Precurve* next;
-    Precurve* inside;
 };
+struct Edge{
+    array<Vertex*, 2> vertices;
+    function<array<double, 2>(double)> f;
+};
+
 struct Face{
-    Precurve* precurves;
+    vector<Edge*> boundaries;
 };
 struct Shell{
     vector<Face*> faces;
@@ -50,31 +46,32 @@ private:
     
 public:
     //constructors
-    Boundary_Representation(string shapeName, double shapeResolution);
+    Boundary_Representation(){}
     
     //mutators, accessors
-    Shape* getShape();
-    void setShape(Shape* other);
+    Shape* getShape(){return final_shape;}
+    void setShape(Shape* other){final_shape = other;};
     
-    //METHODS
-    void createPlane(double length, double width, double startingPoint[3], double normalVector[3]);
-    double distanceBnPoints(double p1[3], double p2[3]);
-    vector<Facet*> extrude_point(int idx, vector<Facet*> surface, array<double, 3> direction, double maxLength, double startPoint[3], double curLength);
+    //METHODS - 2D
+    void create2DEdge(double domainStart, double domainEnd, function<array<double, 2>(double)> func);
+    void createRectangle(double length, double width);
+    void createCircle();
     
-    void hollow_extrude(double length, double normalX, double normalY, double normalZ);
+    //METHODS - 3D
+    void extrude(double x, double y, double z); //move every vertex to the new (x,y,z)
     
-    void solid_extrude(double length, double normalVector[3]);
+    void rotate(double radians); //rotate the entire shape
+        
+    void translation(double x, double y, double z); //translate the entire shape
     
-    void rotate(double angle, double xRange[2], double yRange[2], double zRange[2]);
+    void add(Boundary_Representation other); //combine shapes
     
-    void solid_rotate(double angle, double xRange[2], double yRange[2], double zRange[2]);
+    void subtract(Boundary_Representation other); //subtract the commonality with other
     
-    void translation(double xTranslation, double yTranslation, double zTranslation, double xRange[2], double yRange[2], double zRange[2]);
+    void intersection(Boundary_Representation other); //subtract part not common with other
     
-    void add(Boundary_Representation other);
-    
-    void subtract(Boundary_Representation other);
-    
+    //METHOS - I/O
+    void export_file(string filename);
     void import_file(string filename);
     
 };
